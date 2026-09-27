@@ -37,6 +37,7 @@ export default function App() {
   const [ingredients, setIngredients] = useState(null)
   const [incertain, setIncertain] = useState([])
   const [halal, setHalal] = useState(true)
+  const [sansAlcool, setSansAlcool] = useState(true)
   const [recipes, setRecipes] = useState(null)
   const [loadingIngredients, setLoadingIngredients] = useState(false)
   const [loadingRecipe, setLoadingRecipe] = useState(false)
@@ -87,7 +88,7 @@ export default function App() {
       const res = await fetch(`${API_URL}/generate-recipe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients, halal }),
+        body: JSON.stringify({ ingredients, halal, sans_alcool: sansAlcool }),
       })
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data = await res.json()
@@ -182,6 +183,14 @@ export default function App() {
               onChange={(e) => setHalal(e.target.checked)}
             />
             Recettes halal uniquement
+          </label>
+          <label className="halal-checkbox">
+            <input
+              type="checkbox"
+              checked={sansAlcool}
+              onChange={(e) => setSansAlcool(e.target.checked)}
+            />
+            Sans alcool
           </label>
 
           {!recipes && !loadingRecipe && (

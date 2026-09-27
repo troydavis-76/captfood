@@ -36,22 +36,28 @@ Règles :
 - Ne devine jamais la quantité, juste la présence
 - Si un même ingrédient apparaît sur plusieurs photos, ne le liste qu'une seule fois"""
 
-HALAL_RULES = """respectant STRICTEMENT ces règles :
-1. Aucun alcool en ingrédient ou cuisson (vin, bière, rhum, extraits alcoolisés)
-2. Aucun porc ni dérivé (lardons, jambon, saindoux, gélatine non précisée)
-3. Si une recette nécessite de la viande ou volaille : ajoute une note explicite "Vérifiez que votre viande est certifiée halal/zabiha avant de cuisiner"
-4. Si un ingrédient classique non-halal serait normalement utilisé, remplace-le et signale le remplacement avec la mention "(substitué pour respecter le halal)"
-5. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire"""
-
-NON_HALAL_RULES = """en suivant ces règles :
-1. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire
-2. Laisse le champ "notes_halal" vide ([]) pour chaque recette, aucune contrainte halal n'est demandée ici"""
+RULE_PORK = 'Aucun porc ni dérivé (lardons, jambon, saindoux, gélatine non précisée)'
+RULE_MEAT_CERT = (
+    'Si une recette nécessite de la viande ou volaille : ajoute une note explicite '
+    '"Vérifiez que votre viande est certifiée halal/zabiha avant de cuisiner"'
+)
+RULE_ALCOHOL = 'Aucun alcool en ingrédient ou cuisson (vin, bière, rhum, extraits alcoolisés, y compris pour déglacer)'
+RULE_SUBSTITUTE = (
+    'Si un ingrédient classique incompatible avec les règles ci-dessus serait normalement utilisé, '
+    'remplace-le et signale le remplacement avec la mention "(substitué)" dans "notes_halal"'
+)
+RULE_BASE = (
+    'Utilise en priorité les ingrédients de la liste fournie ; '
+    'tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire'
+)
+RULE_NO_NOTES = 'Laisse le champ "notes_halal" vide ([]) pour chaque recette : aucune contrainte alimentaire particulière n\'est demandée ici'
 
 RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes détaillées et réalistes à partir d'ingrédients disponibles.
 
 Ingrédients disponibles : {ingredients}
 
-Génère EXACTEMENT 3 recettes DIFFÉRENTES (varie les styles/cuisines quand c'est possible) {rules}
+Génère EXACTEMENT 3 recettes DIFFÉRENTES (varie les styles/cuisines quand c'est possible) en respectant STRICTEMENT ces règles :
+{rules}
 
 Pour chaque étape de préparation, sois PRÉCIS et DÉTAILLÉ comme un vrai chef qui explique à un débutant :
 - Indique une durée quand c'est pertinent (ex: "faire revenir 5 minutes")
@@ -77,9 +83,23 @@ Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
 }}"""
 
 
-def build_recipe_prompt(ingredients: list[str], halal: bool) -> str:
-    rules = HALAL_RULES if halal else NON_HALAL_RULES
-    return RECIPE_PROMPT_TEMPLATE.format(ingredients=", ".join(ingredients), rules=rules)
+def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool) -> str:
+    rules = []
+    if halal:
+        rules.append(RULE_PORK)
+        rules.append(RULE_MEAT_CERT)
+    if sans_alcool:
+        rules.append(RULE_ALCOHOL)
+    if halal or sans_alcool:
+        rules.append(RULE_SUBSTITUTE)
+    rules.append(RULE_BASE)
+    if not halal and not sans_alcool:
+        rules.append(RULE_NO_NOTES)
+
+    numbered_rules = "\n".join(f"{i + 1}. {rule}" for i, rule in enumerate(rules))
+    return RECIPE_PROMPT_TEMPLATE.format(
+        ingredients=", ".join(ingredients), rules=numbered_rules
+    )
 
 
 def parse_json_response(text: str) -> dict:
@@ -156,6 +176,7 @@ async def detect_ingredients(files: list[UploadFile] = File(...)):
 class RecipeRequest(BaseModel):
     ingredients: list[str]
     halal: bool = True
+    sans_alcool: bool = True
 
 
 @app.post("/generate-recipe")
@@ -163,7 +184,7 @@ async def generate_recipe(request: RecipeRequest):
     if not request.ingredients:
         raise HTTPException(status_code=400, detail="Liste d'ingrédients vide")
 
-    prompt = build_recipe_prompt(request.ingredients, request.halal)
+    prompt = build_recipe_prompt(request.ingredients, request.halal, request.sans_alcool)
 
     try:
         response = client.messages.create(
