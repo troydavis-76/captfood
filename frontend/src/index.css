@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f6f4ef;
+  color: #1f2a1f;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  color: #2f6b3a;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: #6b6b6b;
+  margin: 0;
+}
+
+.step {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+input[type='file'] {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.preview {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+button {
+  background: #2f6b3a;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:disabled {
+  background: #a5c2ab;
+  cursor: not-allowed;
+}
+
+.hint {
+  color: #6b6b6b;
+  font-size: 14px;
+  margin-top: 0;
+}
+
+.ingredient-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ingredient-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f0ede4;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.remove {
+  width: auto;
+  background: transparent;
+  color: #b23b3b;
+  padding: 0 6px;
+  font-weight: bold;
+}
+
+.uncertain-title {
+  font-size: 13px;
+  color: #a58a2a;
+  margin-top: 16px;
+}
+
+.uncertain-list li {
+  background: #f7f0dc;
+}
+
+.add {
+  width: auto;
+  background: transparent;
+  color: #2f6b3a;
+  padding: 0 8px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.recipe h3 {
+  color: #2f6b3a;
+  margin-bottom: 4px;
+}
+
+.time {
+  color: #6b6b6b;
+}
+
+.halal-notes {
+  background: #eef6ee;
+  border-left: 3px solid #2f6b3a;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.error {
+  color: #b23b3b;
+  text-align: center;
+}
