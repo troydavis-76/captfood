@@ -35,25 +35,38 @@ Règles :
 - Ignore les ustensiles, contenants vides, produits non alimentaires
 - Ne devine jamais la quantité, juste la présence"""
 
-RECIPE_PROMPT_TEMPLATE = """Tu es un assistant culinaire qui génère des recettes 100% halal à partir d'ingrédients disponibles.
+RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes 100% halal, détaillées et réalistes, à partir d'ingrédients disponibles.
 
 Ingrédients disponibles : {ingredients}
 
-Génère UNE recette respectant STRICTEMENT ces règles :
+Génère 2 À 3 recettes DIFFÉRENTES (varie les styles/cuisines quand c'est possible) respectant STRICTEMENT ces règles :
 1. Aucun alcool en ingrédient ou cuisson (vin, bière, rhum, extraits alcoolisés)
 2. Aucun porc ni dérivé (lardons, jambon, saindoux, gélatine non précisée)
-3. Si la recette nécessite de la viande ou volaille : ajoute une note explicite "Vérifiez que votre viande est certifiée halal/zabiha avant de cuisiner"
+3. Si une recette nécessite de la viande ou volaille : ajoute une note explicite "Vérifiez que votre viande est certifiée halal/zabiha avant de cuisiner"
 4. Si un ingrédient classique non-halal serait normalement utilisé, remplace-le et signale le remplacement avec la mention "(substitué pour respecter le halal)"
-5. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter 2-3 ingrédients de base courants (sel, huile, épices) si nécessaire
+5. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire
+
+Pour chaque étape de préparation, sois PRÉCIS et DÉTAILLÉ comme un vrai chef qui explique à un débutant :
+- Indique une durée quand c'est pertinent (ex: "faire revenir 5 minutes")
+- Donne des repères sensoriels (couleur, texture, odeur) pour savoir quand passer à l'étape suivante
+- Précise les techniques (feu doux/vif, à couvert, en remuant régulièrement...)
+- Ne te contente jamais d'une phrase vague du type "faire cuire les légumes"
 
 Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
 {{
-  "titre": "...",
-  "temps_preparation": "...",
-  "ingredients_utilises": ["..."],
-  "ingredients_a_ajouter": ["..."],
-  "etapes": ["...", "..."],
-  "notes_halal": ["substitutions ou avertissements appliqués"]
+  "recettes": [
+    {{
+      "titre": "...",
+      "temps_preparation": "...",
+      "difficulte": "Facile" | "Moyen" | "Difficile",
+      "ingredients_utilises": ["..."],
+      "ingredients_a_ajouter": ["..."],
+      "etapes": [
+        {{"titre": "court résumé de l'étape", "detail": "explication complète et précise", "duree": "ex: 5 min ou null"}}
+      ],
+      "notes_halal": ["substitutions ou avertissements appliqués"]
+    }}
+  ]
 }}"""
 
 
@@ -121,12 +134,13 @@ async def generate_recipe(request: RecipeRequest):
     try:
         response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1500,
+            max_tokens=4000,
             messages=[{"role": "user", "content": prompt}],
         )
         raw_text = response.content[0].text
         result = parse_json_response(raw_text)
-        print("[LOG] Recette générée :", result.get("titre"))
+        titres = [r.get("titre") for r in result.get("recettes", [])]
+        print(f"[LOG] {len(titres)} recette(s) générée(s) :", titres)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -136,3 +136,118 @@ button:disabled {
   color: #b23b3b;
   text-align: center;
 }
+
+.steps-list {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.steps-list li {
+  margin-bottom: 14px;
+}
+
+.step-title {
+  font-weight: 600;
+}
+
+.step-duree {
+  font-weight: 400;
+  color: #6b6b6b;
+  font-size: 13px;
+}
+
+.step-detail {
+  margin: 4px 0 0;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Animation marmite pendant la génération de recette */
+.pot-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0 4px;
+}
+
+.pot-loader-text {
+  color: #6b6b6b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.pot-body {
+  fill: #3a3a3a;
+}
+
+.pot-rim,
+.pot-handle {
+  fill: #555;
+}
+
+.pot-shadow {
+  fill: rgba(0, 0, 0, 0.08);
+}
+
+.pot-spoon {
+  transform-origin: 50px 60px;
+  animation: stir 1.3s ease-in-out infinite;
+}
+
+.spoon-stick {
+  stroke: #8a5a2b;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.spoon-head {
+  fill: #8a5a2b;
+}
+
+@keyframes stir {
+  0% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+  100% {
+    transform: rotate(-18deg);
+  }
+}
+
+.steam path {
+  stroke: #c2c2c2;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.steam-1 {
+  animation: steam-rise 2s ease-in infinite;
+}
+
+.steam-2 {
+  animation: steam-rise 2s ease-in infinite 0.4s;
+}
+
+.steam-3 {
+  animation: steam-rise 2s ease-in infinite 0.8s;
+}
+
+@keyframes steam-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scaleY(0.6);
+  }
+  30% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(1.1);
+  }
+}
