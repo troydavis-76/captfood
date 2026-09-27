@@ -19,9 +19,9 @@ app.add_middleware(
 
 client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-VISION_PROMPT = """Tu es un assistant qui identifie les ingrédients alimentaires visibles sur une photo de frigo, placard ou plan de travail.
+VISION_PROMPT = """Tu es un assistant qui identifie les ingrédients alimentaires visibles sur une ou plusieurs photos de frigo, placard ou plan de travail (les photos peuvent montrer des zones différentes du même foyer).
 
-Analyse l'image et liste UNIQUEMENT les ingrédients que tu peux identifier avec certitude raisonnable.
+Analyse TOUTES les images fournies et liste UNIQUEMENT les ingrédients que tu peux identifier avec certitude raisonnable, en combinant les résultats de toutes les photos SANS DOUBLON.
 
 Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
 {
@@ -33,18 +33,25 @@ Règles :
 - Nomme les ingrédients en français, au singulier, sans marque commerciale (ex: "yaourt nature" pas "Yaourt Danone")
 - Si tu vois un emballage sans pouvoir identifier le contenu précis, mets-le dans "incertain"
 - Ignore les ustensiles, contenants vides, produits non alimentaires
-- Ne devine jamais la quantité, juste la présence"""
+- Ne devine jamais la quantité, juste la présence
+- Si un même ingrédient apparaît sur plusieurs photos, ne le liste qu'une seule fois"""
 
-RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes 100% halal, détaillées et réalistes, à partir d'ingrédients disponibles.
-
-Ingrédients disponibles : {ingredients}
-
-Génère 2 À 3 recettes DIFFÉRENTES (varie les styles/cuisines quand c'est possible) respectant STRICTEMENT ces règles :
+HALAL_RULES = """respectant STRICTEMENT ces règles :
 1. Aucun alcool en ingrédient ou cuisson (vin, bière, rhum, extraits alcoolisés)
 2. Aucun porc ni dérivé (lardons, jambon, saindoux, gélatine non précisée)
 3. Si une recette nécessite de la viande ou volaille : ajoute une note explicite "Vérifiez que votre viande est certifiée halal/zabiha avant de cuisiner"
 4. Si un ingrédient classique non-halal serait normalement utilisé, remplace-le et signale le remplacement avec la mention "(substitué pour respecter le halal)"
-5. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire
+5. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire"""
+
+NON_HALAL_RULES = """en suivant ces règles :
+1. Utilise en priorité les ingrédients de la liste fournie ; tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire
+2. Laisse le champ "notes_halal" vide ([]) pour chaque recette, aucune contrainte halal n'est demandée ici"""
+
+RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes détaillées et réalistes à partir d'ingrédients disponibles.
+
+Ingrédients disponibles : {ingredients}
+
+Génère EXACTEMENT 3 recettes DIFFÉRENTES (varie les styles/cuisines quand c'est possible) {rules}
 
 Pour chaque étape de préparation, sois PRÉCIS et DÉTAILLÉ comme un vrai chef qui explique à un débutant :
 - Indique une durée quand c'est pertinent (ex: "faire revenir 5 minutes")
@@ -68,6 +75,11 @@ Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
     }}
   ]
 }}"""
+
+
+def build_recipe_prompt(ingredients: list[str], halal: bool) -> str:
+    rules = HALAL_RULES if halal else NON_HALAL_RULES
+    return RECIPE_PROMPT_TEMPLATE.format(ingredients=", ".join(ingredients), rules=rules)
 
 
 def parse_json_response(text: str) -> dict:
@@ -94,11 +106,33 @@ def health():
     return {"status": "ok"}
 
 
+MAX_PHOTOS = 5
+
+
 @app.post("/detect-ingredients")
-async def detect_ingredients(file: UploadFile = File(...)):
-    image_bytes = await file.read()
-    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    media_type = file.content_type or "image/jpeg"
+async def detect_ingredients(files: list[UploadFile] = File(...)):
+    if not files:
+        raise HTTPException(status_code=400, detail="Aucune photo envoyée")
+    if len(files) > MAX_PHOTOS:
+        raise HTTPException(
+            status_code=400, detail=f"Maximum {MAX_PHOTOS} photos à la fois"
+        )
+
+    image_blocks = []
+    for file in files:
+        image_bytes = await file.read()
+        image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+        media_type = file.content_type or "image/jpeg"
+        image_blocks.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": image_b64,
+                },
+            }
+        )
 
     try:
         response = client.messages.create(
@@ -107,17 +141,7 @@ async def detect_ingredients(file: UploadFile = File(...)):
             messages=[
                 {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": media_type,
-                                "data": image_b64,
-                            },
-                        },
-                        {"type": "text", "text": VISION_PROMPT},
-                    ],
+                    "content": [*image_blocks, {"type": "text", "text": VISION_PROMPT}],
                 }
             ],
         )
@@ -131,6 +155,7 @@ async def detect_ingredients(file: UploadFile = File(...)):
 
 class RecipeRequest(BaseModel):
     ingredients: list[str]
+    halal: bool = True
 
 
 @app.post("/generate-recipe")
@@ -138,7 +163,7 @@ async def generate_recipe(request: RecipeRequest):
     if not request.ingredients:
         raise HTTPException(status_code=400, detail="Liste d'ingrédients vide")
 
-    prompt = RECIPE_PROMPT_TEMPLATE.format(ingredients=", ".join(request.ingredients))
+    prompt = build_recipe_prompt(request.ingredients, request.halal)
 
     try:
         response = client.messages.create(

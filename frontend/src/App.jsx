@@ -29,33 +29,40 @@ function PotLoader() {
   )
 }
 
+const MAX_PHOTOS = 5
+
 export default function App() {
-  const [photo, setPhoto] = useState(null)
-  const [photoPreview, setPhotoPreview] = useState(null)
+  const [photos, setPhotos] = useState([])
+  const [photoPreviews, setPhotoPreviews] = useState([])
   const [ingredients, setIngredients] = useState(null)
   const [incertain, setIncertain] = useState([])
+  const [halal, setHalal] = useState(true)
   const [recipes, setRecipes] = useState(null)
   const [loadingIngredients, setLoadingIngredients] = useState(false)
   const [loadingRecipe, setLoadingRecipe] = useState(false)
   const [error, setError] = useState(null)
 
   function handlePhotoChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setPhoto(file)
-    setPhotoPreview(URL.createObjectURL(file))
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    if (files.length > MAX_PHOTOS) {
+      setError(`Maximum ${MAX_PHOTOS} photos à la fois`)
+      return
+    }
+    setPhotos(files)
+    setPhotoPreviews(files.map((f) => URL.createObjectURL(f)))
     setIngredients(null)
     setRecipes(null)
     setError(null)
   }
 
   async function detectIngredients() {
-    if (!photo) return
+    if (photos.length === 0) return
     setLoadingIngredients(true)
     setError(null)
     try {
       const formData = new FormData()
-      formData.append('file', photo)
+      photos.forEach((photo) => formData.append('files', photo))
       const res = await fetch(`${API_URL}/detect-ingredients`, {
         method: 'POST',
         body: formData,
@@ -80,7 +87,7 @@ export default function App() {
       const res = await fetch(`${API_URL}/generate-recipe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients }),
+        body: JSON.stringify({ ingredients, halal }),
       })
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data = await res.json()
@@ -111,19 +118,26 @@ export default function App() {
       </header>
 
       <section className="step">
-        <h2>1. Prends une photo</h2>
+        <h2>1. Prends jusqu'à {MAX_PHOTOS} photos</h2>
         <input
           type="file"
           accept="image/*"
           capture="environment"
+          multiple
           onChange={handlePhotoChange}
         />
-        {photoPreview && (
-          <img src={photoPreview} alt="aperçu" className="preview" />
+        {photoPreviews.length > 0 && (
+          <div className="preview-row">
+            {photoPreviews.map((src, i) => (
+              <img key={i} src={src} alt={`aperçu ${i + 1}`} className="preview preview-thumb" />
+            ))}
+          </div>
         )}
-        {photo && !ingredients && (
+        {photos.length > 0 && !ingredients && (
           <button onClick={detectIngredients} disabled={loadingIngredients}>
-            {loadingIngredients ? 'Analyse en cours...' : 'Analyser la photo'}
+            {loadingIngredients
+              ? 'Analyse en cours...'
+              : `Analyser ${photos.length > 1 ? `les ${photos.length} photos` : 'la photo'}`}
           </button>
         )}
       </section>
@@ -160,6 +174,16 @@ export default function App() {
               </ul>
             </>
           )}
+
+          <label className="halal-checkbox">
+            <input
+              type="checkbox"
+              checked={halal}
+              onChange={(e) => setHalal(e.target.checked)}
+            />
+            Recettes halal uniquement
+          </label>
+
           {!recipes && !loadingRecipe && (
             <button onClick={generateRecipe} disabled={ingredients.length === 0}>
               Générer des recettes
@@ -171,9 +195,9 @@ export default function App() {
       )}
 
       {recipes && recipes.length > 0 && (
-        <>
+        <div className="recipes-grid">
           {recipes.map((recipe, ri) => (
-            <section className="step recipe" key={ri}>
+            <section className="recipe-card" key={ri}>
               <h2>{recipe.titre}</h2>
               <p className="time">
                 ⏱ {recipe.temps_preparation}
@@ -217,7 +241,7 @@ export default function App() {
               )}
             </section>
           ))}
-        </>
+        </div>
       )}
 
       {error && <p className="error">Erreur : {error}</p>}
