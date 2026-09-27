@@ -80,6 +80,15 @@ def parse_json_response(text: str) -> dict:
     return json.loads(text[start : end + 1])
 
 
+def extract_text(response) -> str:
+    """Va chercher le premier bloc de texte dans la réponse, en ignorant
+    les blocs de réflexion (thinking) que le modèle peut renvoyer avant."""
+    for block in response.content:
+        if getattr(block, "type", None) == "text":
+            return block.text
+    raise ValueError("Aucun bloc de texte trouvé dans la réponse du modèle")
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -112,7 +121,7 @@ async def detect_ingredients(file: UploadFile = File(...)):
                 }
             ],
         )
-        raw_text = response.content[0].text
+        raw_text = extract_text(response)
         result = parse_json_response(raw_text)
         print("[LOG] Ingrédients détectés :", result)  # logging demandé
         return result
@@ -137,7 +146,7 @@ async def generate_recipe(request: RecipeRequest):
             max_tokens=4000,
             messages=[{"role": "user", "content": prompt}],
         )
-        raw_text = response.content[0].text
+        raw_text = extract_text(response)
         result = parse_json_response(raw_text)
         titres = [r.get("titre") for r in result.get("recettes", [])]
         print(f"[LOG] {len(titres)} recette(s) générée(s) :", titres)
