@@ -123,10 +123,10 @@ export default function App() {
         <input
           type="file"
           accept="image/*"
-          capture="environment"
           multiple
           onChange={handlePhotoChange}
         />
+        <p className="hint">Choisis "Photos"/"Galerie" pour en sélectionner plusieurs d'un coup, ou "Appareil photo" pour une seule.</p>
         {photoPreviews.length > 0 && (
           <div className="preview-row">
             {photoPreviews.map((src, i) => (
