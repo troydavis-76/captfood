@@ -162,27 +162,63 @@ input[type='file'] {
   cursor: pointer;
 }
 
-.recipes-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .recipes-grid {
-    grid-template-columns: 1fr;
-    max-width: 480px;
-    margin: 0 auto;
-  }
+.recipes-accordion {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .recipe-card {
   background: white;
   border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.recipe-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: white;
+  color: inherit;
+  border: none;
+  border-radius: 0;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipe-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recipe-title {
+  font-weight: 700;
+  font-size: 17px;
+  color: #1f2a1f;
+}
+
+.recipe-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #6B2D5C;
+  transition: transform 0.2s ease;
+}
+
+.recipe-card.open .recipe-chevron {
+  transform: rotate(180deg);
+}
+
+.recipe-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid #f0ede4;
+  padding-top: 12px;
 }
 
 button {

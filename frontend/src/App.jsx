@@ -39,6 +39,7 @@ export default function App() {
   const [halal, setHalal] = useState(true)
   const [sansAlcool, setSansAlcool] = useState(true)
   const [recipes, setRecipes] = useState(null)
+  const [openRecipes, setOpenRecipes] = useState({})
   const [loadingIngredients, setLoadingIngredients] = useState(false)
   const [loadingRecipe, setLoadingRecipe] = useState(false)
   const [error, setError] = useState(null)
@@ -93,7 +94,9 @@ export default function App() {
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
       const data = await res.json()
       console.log('Recettes générées :', data) // vérification étape 2
-      setRecipes(data.recettes || [])
+      const recettes = data.recettes || []
+      setRecipes(recettes)
+      setOpenRecipes(recettes.length > 0 ? { 0: true } : {})
     } catch (err) {
       setError(err.message)
     } finally {
@@ -109,6 +112,10 @@ export default function App() {
     const ing = incertain[idx]
     setIngredients([...ingredients, ing])
     setIncertain(incertain.filter((_, i) => i !== idx))
+  }
+
+  function toggleRecipe(idx) {
+    setOpenRecipes((prev) => ({ ...prev, [idx]: !prev[idx] }))
   }
 
   return (
@@ -230,52 +237,69 @@ export default function App() {
       )}
 
       {recipes && recipes.length > 0 && (
-        <div className="recipes-grid">
-          {recipes.map((recipe, ri) => (
-            <section className="recipe-card" key={ri}>
-              <h2>{recipe.titre}</h2>
-              <p className="time">
-                ⏱ {recipe.temps_preparation}
-                {recipe.difficulte && ` · ${recipe.difficulte}`}
-              </p>
-
-              <h3>Ingrédients utilisés</h3>
-              <ul>
-                {recipe.ingredients_utilises?.map((ing, i) => <li key={i}>{ing}</li>)}
-              </ul>
-
-              {recipe.ingredients_a_ajouter?.length > 0 && (
-                <>
-                  <h3>À ajouter</h3>
-                  <ul>
-                    {recipe.ingredients_a_ajouter.map((ing, i) => <li key={i}>{ing}</li>)}
-                  </ul>
-                </>
-              )}
-
-              <h3>Étapes</h3>
-              <ol className="steps-list">
-                {recipe.etapes?.map((step, i) => (
-                  <li key={i}>
-                    <span className="step-title">
-                      {step.titre}
-                      {step.duree && <span className="step-duree"> · {step.duree}</span>}
+        <div className="recipes-accordion">
+          {recipes.map((recipe, ri) => {
+            const isOpen = !!openRecipes[ri]
+            return (
+              <section className={`recipe-card ${isOpen ? 'open' : ''}`} key={ri}>
+                <button
+                  type="button"
+                  className="recipe-header"
+                  onClick={() => toggleRecipe(ri)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="recipe-header-text">
+                    <span className="recipe-title">{recipe.titre}</span>
+                    <span className="time">
+                      ⏱ {recipe.temps_preparation}
+                      {recipe.difficulte && ` · ${recipe.difficulte}`}
                     </span>
-                    <p className="step-detail">{step.detail}</p>
-                  </li>
-                ))}
-              </ol>
+                  </span>
+                  <span className="recipe-chevron">▾</span>
+                </button>
 
-              {recipe.notes_halal?.length > 0 && (
-                <div className="halal-notes">
-                  <h3>Notes halal</h3>
-                  <ul>
-                    {recipe.notes_halal.map((note, i) => <li key={i}>{note}</li>)}
-                  </ul>
-                </div>
-              )}
-            </section>
-          ))}
+                {isOpen && (
+                  <div className="recipe-body">
+                    <h3>Ingrédients utilisés</h3>
+                    <ul>
+                      {recipe.ingredients_utilises?.map((ing, i) => <li key={i}>{ing}</li>)}
+                    </ul>
+
+                    {recipe.ingredients_a_ajouter?.length > 0 && (
+                      <>
+                        <h3>À ajouter</h3>
+                        <ul>
+                          {recipe.ingredients_a_ajouter.map((ing, i) => <li key={i}>{ing}</li>)}
+                        </ul>
+                      </>
+                    )}
+
+                    <h3>Étapes</h3>
+                    <ol className="steps-list">
+                      {recipe.etapes?.map((step, i) => (
+                        <li key={i}>
+                          <span className="step-title">
+                            {step.titre}
+                            {step.duree && <span className="step-duree"> · {step.duree}</span>}
+                          </span>
+                          <p className="step-detail">{step.detail}</p>
+                        </li>
+                      ))}
+                    </ol>
+
+                    {recipe.notes_halal?.length > 0 && (
+                      <div className="halal-notes">
+                        <h3>Notes halal</h3>
+                        <ul>
+                          {recipe.notes_halal.map((note, i) => <li key={i}>{note}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            )
+          })}
         </div>
       )}
 
