@@ -114,18 +114,44 @@ export default function App() {
   return (
     <div className="container">
       <header>
-        <h1>Clic Halal</h1>
-        <p className="subtitle">Photo de ton frigo → recette halal</p>
+        <h1>CaptFood</h1>
+        <p className="subtitle">Fais voir ton placard/frigo, je te sors une recette</p>
+        <div className="benefits">
+          <div className="benefit">
+            <span className="benefit-icon">🌱</span>
+            <span>Anti-gaspi</span>
+          </div>
+          <div className="benefit">
+            <span className="benefit-icon">☪️</span>
+            <span>100% halal</span>
+          </div>
+          <div className="benefit">
+            <span className="benefit-icon">⚡</span>
+            <span>Rapide</span>
+          </div>
+          <div className="benefit">
+            <span className="benefit-icon">🍽️</span>
+            <span>3 recettes</span>
+          </div>
+        </div>
       </header>
 
-      <section className="step">
+      <section className="step canvas">
         <h2>1. Prends jusqu'à {MAX_PHOTOS} photos</h2>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handlePhotoChange}
-        />
+        <label className="canvas-dropzone">
+          <span className="canvas-icon">📷</span>
+          <span className="canvas-text">
+            {photos.length > 0
+              ? `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`
+              : 'Choisis tes photos'}
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handlePhotoChange}
+          />
+        </label>
         <p className="hint">Choisis "Photos"/"Galerie" pour en sélectionner plusieurs d'un coup, ou "Appareil photo" pour une seule.</p>
         {photoPreviews.length > 0 && (
           <div className="preview-row">

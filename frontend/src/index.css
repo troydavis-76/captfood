@@ -17,7 +17,38 @@ body {
 
 header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding-top: 8px;
+}
+
+header h1 {
+  font-size: 34px;
+  margin-bottom: 6px;
+}
+
+.benefits {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #6B2D5C;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.benefit-icon {
+  font-size: 15px;
 }
 
 .step {
@@ -27,7 +58,7 @@ header {
 }
 
 h1 {
-  color: #2f6b3a;
+  color: #6B2D5C;
   margin-bottom: 4px;
 }
 
@@ -47,6 +78,52 @@ h1 {
 input[type='file'] {
   display: block;
   margin-bottom: 12px;
+}
+
+.canvas {
+  text-align: center;
+}
+
+.canvas h2 {
+  text-align: left;
+}
+
+.canvas-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed #D9BBCB;
+  border-radius: 12px;
+  padding: 32px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: #fafaf6;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.canvas-dropzone:hover {
+  border-color: #6B2D5C;
+  background: #F5EAF0;
+}
+
+.canvas-dropzone input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+}
+
+.canvas-icon {
+  font-size: 32px;
+}
+
+.canvas-text {
+  font-weight: 600;
+  color: #6B2D5C;
 }
 
 .preview {
@@ -109,7 +186,7 @@ input[type='file'] {
 }
 
 button {
-  background: #2f6b3a;
+  background: #6B2D5C;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -120,7 +197,7 @@ button {
 }
 
 button:disabled {
-  background: #a5c2ab;
+  background: #D3B0C7;
   cursor: not-allowed;
 }
 
@@ -166,14 +243,14 @@ button:disabled {
 .add {
   width: auto;
   background: transparent;
-  color: #2f6b3a;
+  color: #6B2D5C;
   padding: 0 8px;
   font-weight: bold;
   font-size: 18px;
 }
 
 .recipe h3 {
-  color: #2f6b3a;
+  color: #6B2D5C;
   margin-bottom: 4px;
 }
 
@@ -182,8 +259,8 @@ button:disabled {
 }
 
 .halal-notes {
-  background: #eef6ee;
-  border-left: 3px solid #2f6b3a;
+  background: #F5EAF0;
+  border-left: 3px solid #6B2D5C;
   padding: 8px 12px;
   border-radius: 6px;
   margin-top: 12px;

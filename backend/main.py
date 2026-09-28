@@ -7,7 +7,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Clic Halal API")
+app = FastAPI(title="CaptFood API")
 
 # CORS ouvert pour le dev local (à restreindre en prod)
 app.add_middleware(
