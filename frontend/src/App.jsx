@@ -115,7 +115,7 @@ export default function App() {
     <div className="container">
       <header>
         <h1>CaptFood</h1>
-        <p className="subtitle">Fais voir ton placard/frigo, je te sors une recette</p>
+        <p className="subtitle">De ton placard à ton assiette, en une photo — zéro gaspillage.</p>
         <div className="benefits">
           <div className="benefit">
             <span className="benefit-icon">🌱</span>
