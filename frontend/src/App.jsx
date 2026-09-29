@@ -15,6 +15,19 @@ async function readErrorDetail(res, fallback) {
   return fallback
 }
 
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('captfood_device_id')
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      localStorage.setItem('captfood_device_id', id)
+    }
+    return id
+  } catch {
+    return ''
+  }
+}
+
 function PotLoader({ text }) {
   return (
     <div className="pot-loader" role="status" aria-live="polite">
@@ -59,6 +72,10 @@ export default function App() {
   const [loadingRecipe, setLoadingRecipe] = useState(false)
   const [error, setError] = useState(null)
   const [manualIngredient, setManualIngredient] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
+  const [historyItems, setHistoryItems] = useState([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [historyError, setHistoryError] = useState(null)
   const [lang, setLang] = useState(() => {
     try {
       return localStorage.getItem('captfood_lang') || 'fr'
@@ -131,6 +148,7 @@ export default function App() {
           cookeo,
           thermomix,
           lang: LANG_NAMES_FOR_API[lang] || 'français',
+          device_id: getDeviceId(),
         }),
       })
       if (!res.ok) throw new Error(await readErrorDetail(res, t.serverError(res.status)))
@@ -181,22 +199,86 @@ export default function App() {
     setError(null)
   }
 
+  async function openHistory() {
+    setShowHistory(true)
+    setLoadingHistory(true)
+    setHistoryError(null)
+    try {
+      const deviceId = getDeviceId()
+      const res = await fetch(`${API_URL}/recipe-history?device_id=${encodeURIComponent(deviceId)}`)
+      if (!res.ok) throw new Error(await readErrorDetail(res, t.serverError(res.status)))
+      const data = await res.json()
+      setHistoryItems(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setHistoryError(err.message)
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
+  function loadHistoryItem(item) {
+    setRecipes(item.recettes || [])
+    setOpenRecipes(item.recettes && item.recettes.length > 0 ? { 0: true } : {})
+    setIngredients(item.ingredients || [])
+    setIncertain([])
+    setShowHistory(false)
+  }
+
   return (
     <div className="container">
-      <div className="lang-switcher">
-        <select
-          value={lang}
-          onChange={(e) => setLang(e.target.value)}
-          aria-label="Langue"
-        >
-          {LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+      <div className="top-bar">
+        <button type="button" className="history-toggle" onClick={showHistory ? () => setShowHistory(false) : openHistory}>
+          {showHistory ? `← ${t.backButton}` : `🕘 ${t.historyButton}`}
+        </button>
+        <div className="lang-switcher">
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
+            aria-label="Langue"
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
+      {showHistory ? (
+        <section className="step history-panel">
+          <h2>{t.historyButton}</h2>
+          {loadingHistory && <PotLoader text={t.historyLoading} />}
+          {historyError && <p className="error">{t.errorPrefix} : {historyError}</p>}
+          {!loadingHistory && !historyError && historyItems.length === 0 && (
+            <p className="hint">{t.historyEmpty}</p>
+          )}
+          {!loadingHistory && historyItems.length > 0 && (
+            <ul className="history-list">
+              {historyItems.map((item) => (
+                <li key={item.id} className="history-item">
+                  <button type="button" className="history-item-button" onClick={() => loadHistoryItem(item)}>
+                    <span className="history-item-date">
+                      {new Date(item.created_at).toLocaleString(lang)}
+                    </span>
+                    <span className="history-item-ingredients">
+                      {(item.ingredients || []).slice(0, 4).join(', ')}
+                      {(item.ingredients || []).length > 4 ? '…' : ''}
+                    </span>
+                    <span className="history-item-tags">
+                      {item.halal && <span className="history-tag">☪️</span>}
+                      {item.sans_alcool && <span className="history-tag">🚫🍷</span>}
+                      {item.cookeo && <span className="history-tag">Cookeo</span>}
+                      {item.thermomix && <span className="history-tag">Thermomix</span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : (
+        <>
       <header>
         <h1>CaptFood</h1>
         <p className="subtitle">{t.subtitle}</p>
@@ -432,6 +514,9 @@ export default function App() {
           <button type="button" className="restart-button" onClick={restart}>
             {t.restartButton}
           </button>
+        </>
+      )}
+
         </>
       )}
 

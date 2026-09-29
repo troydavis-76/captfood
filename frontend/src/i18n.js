@@ -54,6 +54,10 @@ const dict = {
     halalNotes: 'Notes halal',
     errorPrefix: 'Erreur',
     serverError: (code) => `Erreur serveur (${code})`,
+    historyButton: 'Historique',
+    backButton: 'Retour',
+    historyLoading: 'Chargement de l\'historique...',
+    historyEmpty: 'Aucune recette générée pour l\'instant.',
   },
   en: {
     subtitle: 'From your pantry to your plate, in one photo — zero waste.',
@@ -91,6 +95,10 @@ const dict = {
     halalNotes: 'Halal notes',
     errorPrefix: 'Error',
     serverError: (code) => `Server error (${code})`,
+    historyButton: 'History',
+    backButton: 'Back',
+    historyLoading: 'Loading history...',
+    historyEmpty: 'No recipes generated yet.',
   },
   ar: {
     subtitle: 'من خزانتك إلى طبقك، بصورة واحدة — بلا هدر.',
@@ -128,6 +136,10 @@ const dict = {
     halalNotes: 'ملاحظات حلال',
     errorPrefix: 'خطأ',
     serverError: (code) => `خطأ في الخادم (${code})`,
+    historyButton: 'السجل',
+    backButton: 'رجوع',
+    historyLoading: 'جارٍ تحميل السجل...',
+    historyEmpty: 'لا توجد وصفات تم إنشاؤها بعد.',
   },
   es: {
     subtitle: 'De tu despensa a tu plato, en una foto — cero desperdicio.',
@@ -165,6 +177,10 @@ const dict = {
     halalNotes: 'Notas halal',
     errorPrefix: 'Error',
     serverError: (code) => `Error del servidor (${code})`,
+    historyButton: 'Historial',
+    backButton: 'Volver',
+    historyLoading: 'Cargando historial...',
+    historyEmpty: 'Aún no hay recetas generadas.',
   },
   de: {
     subtitle: 'Von deiner Vorratskammer auf den Teller, mit einem Foto — kein Verschwenden.',
@@ -202,6 +218,10 @@ const dict = {
     halalNotes: 'Halal-Hinweise',
     errorPrefix: 'Fehler',
     serverError: (code) => `Serverfehler (${code})`,
+    historyButton: 'Verlauf',
+    backButton: 'Zurück',
+    historyLoading: 'Verlauf wird geladen...',
+    historyEmpty: 'Noch keine Rezepte erstellt.',
   },
 }
 

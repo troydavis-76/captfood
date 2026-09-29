@@ -3,6 +3,7 @@ import json
 import os
 import traceback
 
+import httpx
 from anthropic import Anthropic
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +20,60 @@ app.add_middleware(
 )
 
 client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+# --- Historique des recettes (Supabase) ---
+# Optionnel : si ces variables ne sont pas configurées (ex: dev local sans Supabase),
+# l'app fonctionne quand même, juste sans sauvegarde d'historique.
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+HISTORY_ENABLED = bool(SUPABASE_URL and SUPABASE_SERVICE_KEY)
+if not HISTORY_ENABLED:
+    print("[WARN] SUPABASE_URL / SUPABASE_SERVICE_KEY absents : historique désactivé")
+
+
+def _supabase_headers() -> dict:
+    return {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        "Content-Type": "application/json",
+    }
+
+
+async def save_recipe_history(
+    device_id: str,
+    lang: str,
+    halal: bool,
+    sans_alcool: bool,
+    cookeo: bool,
+    thermomix: bool,
+    ingredients: list[str],
+    recettes: list[dict],
+) -> None:
+    """Sauvegarde une génération dans Supabase. N'échoue jamais bruyamment :
+    l'historique est un plus, pas le cœur de l'app."""
+    if not HISTORY_ENABLED or not device_id:
+        return
+    payload = {
+        "device_id": device_id,
+        "lang": lang,
+        "halal": halal,
+        "sans_alcool": sans_alcool,
+        "cookeo": cookeo,
+        "thermomix": thermomix,
+        "ingredients": ingredients,
+        "recettes": recettes,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10) as http_client:
+            resp = await http_client.post(
+                f"{SUPABASE_URL}/rest/v1/recipe_history",
+                headers={**_supabase_headers(), "Prefer": "return=minimal"},
+                json=payload,
+            )
+            if resp.status_code >= 300:
+                print(f"[WARN] Échec sauvegarde historique : {resp.status_code} {resp.text[:300]}")
+    except Exception as e:
+        print("[WARN] Échec sauvegarde historique (exception) :", repr(e))
 
 VISION_PROMPT = """Tu es un assistant qui identifie les ingrédients alimentaires visibles sur une ou plusieurs photos de frigo, placard ou plan de travail (les photos peuvent montrer des zones différentes du même foyer).
 
@@ -331,6 +386,7 @@ class RecipeRequest(BaseModel):
     cookeo: bool = False
     thermomix: bool = False
     lang: str = "français"
+    device_id: str = ""
 
 
 @app.post("/generate-recipe")
@@ -398,10 +454,48 @@ async def generate_recipe(request: RecipeRequest):
             )
 
         result["recettes"] = recettes_conformes
+
+        await save_recipe_history(
+            request.device_id,
+            request.lang,
+            request.halal,
+            request.sans_alcool,
+            request.cookeo,
+            request.thermomix,
+            request.ingredients,
+            recettes_conformes,
+        )
+
         return result
     except HTTPException:
         raise
     except Exception as e:
         print("[ERROR] /generate-recipe :", repr(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/recipe-history")
+async def get_recipe_history(device_id: str, limit: int = 50):
+    if not device_id:
+        raise HTTPException(status_code=400, detail="device_id manquant")
+    if not HISTORY_ENABLED:
+        return []
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as http_client:
+            resp = await http_client.get(
+                f"{SUPABASE_URL}/rest/v1/recipe_history",
+                headers=_supabase_headers(),
+                params={
+                    "device_id": f"eq.{device_id}",
+                    "order": "created_at.desc",
+                    "limit": str(limit),
+                },
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        print("[ERROR] /recipe-history :", repr(e))
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
