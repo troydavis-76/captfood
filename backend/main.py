@@ -80,6 +80,104 @@ RULE_BOTH_APPLIANCES = (
     'donne les DEUX réglages côte à côte et clairement distingués (ex: "Cookeo : ... / Thermomix : ...")'
 )
 
+# --- Garde-fou halal côté code ---
+# Filet de sécurité complémentaire au prompt : Claude peut se tromper, donc on
+# rescanne le texte des recettes générées à la recherche de termes interdits.
+# C'est une détection par mots-clés, pas une garantie absolue : elle peut avoir
+# des faux négatifs (formulation non prévue) et on exclut explicitement les
+# substituts halal courants (ex: "lardons de dinde") pour éviter les faux positifs.
+
+PORK_TERMS = {
+    "fr": ["porc", "jambon", "lardons", "lard ", "bacon", "saindoux", "chorizo",
+           "saucisson", "andouille", "boudin noir", "pancetta", "prosciutto"],
+    "en": ["pork", "ham", "bacon", "lard", "prosciutto", "pepperoni", "chorizo",
+           "pig meat", "salami"],
+    "es": ["cerdo", "jamón", "tocino", "panceta", "chorizo", "beicon", "salchichón"],
+    "de": ["schwein", "speck", "schinken", "bacon", "salami"],
+    "ar": ["خنزير", "لحم خنزير", "بيكون"],
+}
+
+# Qualificatifs qui rendent un terme ci-dessus halal-compatible
+# (ex: "lardons de dinde", "turkey bacon", "jamón de pavo")
+HALAL_SUBSTITUTE_QUALIFIERS = {
+    "fr": ["dinde", "poulet", "volaille", "bœuf", "boeuf", "veau", "halal"],
+    "en": ["turkey", "chicken", "poultry", "beef", "veal", "halal"],
+    "es": ["pavo", "pollo", "aves", "ternera", "halal"],
+    "de": ["pute", "truthahn", "huhn", "geflügel", "rind", "halal"],
+    "ar": ["ديك رومي", "دجاج", "حلال", "بقري"],
+}
+
+ALCOHOL_TERMS = {
+    "fr": ["vin", "bière", "rhum", "whisky", "vodka", "champagne", "cognac",
+           "liqueur", "alcool", "cidre", "porto", "kirsch", "armagnac", "calvados"],
+    "en": ["wine", "beer", "rum", "whisky", "whiskey", "vodka", "champagne",
+           "cognac", "liqueur", "alcohol", "cider", "sherry", "brandy"],
+    "es": ["vino", "cerveza", "ron ", "whisky", "vodka", "champán", "coñac",
+           "licor", "alcohol", "sidra"],
+    "de": ["wein", "bier", "rum ", "whisky", "wodka", "champagner", "cognac",
+           "likör", "alkohol"],
+    "ar": ["نبيذ", "بيرة", "روم", "ويسكي", "فودكا", "شمبانيا", "كونياك", "كحول"],
+}
+
+
+def _lang_key(lang: str) -> str:
+    """Ramène le nom de langue envoyé à l'API (ex: 'Arabic (العربية)') vers une clé courte."""
+    lang_lower = lang.lower()
+    if "arab" in lang_lower or "عرب" in lang:
+        return "ar"
+    if "english" in lang_lower:
+        return "en"
+    if "espa" in lang_lower or "spanish" in lang_lower:
+        return "es"
+    if "german" in lang_lower or "deutsch" in lang_lower:
+        return "de"
+    return "fr"
+
+
+def _recipe_text_blob(recipe: dict) -> str:
+    """Concatène tout le texte pertinent d'une recette pour le scan de mots-clés."""
+    parts = [
+        recipe.get("titre", ""),
+        *(recipe.get("ingredients_utilises") or []),
+        *(recipe.get("ingredients_a_ajouter") or []),
+    ]
+    for etape in recipe.get("etapes") or []:
+        parts.append(etape.get("titre", ""))
+        parts.append(etape.get("detail", ""))
+    return " ".join(parts).lower()
+
+
+def find_compliance_violations(
+    recipe: dict, halal: bool, sans_alcool: bool, lang: str
+) -> list[str]:
+    """Retourne la liste des termes interdits trouvés dans la recette (vide si conforme)."""
+    if not halal and not sans_alcool:
+        return []
+
+    key = _lang_key(lang)
+    blob = " " + _recipe_text_blob(recipe) + " "
+    qualifiers = HALAL_SUBSTITUTE_QUALIFIERS.get(key, HALAL_SUBSTITUTE_QUALIFIERS["fr"])
+    violations = []
+
+    if halal:
+        for term in PORK_TERMS.get(key, PORK_TERMS["fr"]):
+            t = term.lower()  # ne PAS strip() : l'espace final sert de frontière de mot (ex: "lard " != "lardons")
+            if t in blob:
+                # Vérifie un qualificatif halal juste avant/après le terme (fenêtre de ~20 caractères)
+                idx = blob.find(t)
+                window = blob[max(0, idx - 20) : idx + len(t) + 20]
+                if not any(q in window for q in qualifiers):
+                    violations.append(term.strip())
+
+    if sans_alcool:
+        for term in ALCOHOL_TERMS.get(key, ALCOHOL_TERMS["fr"]):
+            t = term.lower()
+            if t in blob:
+                violations.append(term.strip())
+
+    return violations
+
+
 RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes détaillées et réalistes à partir d'ingrédients disponibles.
 
 Ingrédients disponibles : {ingredients}
@@ -273,7 +371,36 @@ async def generate_recipe(request: RecipeRequest):
             raise parse_err
         titres = [r.get("titre") for r in result.get("recettes", [])]
         print(f"[LOG] {len(titres)} recette(s) générée(s) :", titres)
+
+        # Garde-fou halal côté code : on ne sert jamais une recette non conforme
+        recettes_brutes = result.get("recettes", [])
+        recettes_conformes = []
+        for r in recettes_brutes:
+            violations = find_compliance_violations(
+                r, request.halal, request.sans_alcool, request.lang
+            )
+            if violations:
+                print(
+                    f"[WARN] Recette '{r.get('titre')}' écartée (garde-fou halal) : "
+                    f"termes détectés = {violations}"
+                )
+            else:
+                recettes_conformes.append(r)
+
+        if not recettes_conformes:
+            print("[ERROR] Aucune recette conforme après filtrage halal/alcool")
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "Impossible de générer une recette conforme (halal/sans alcool) "
+                    "cette fois-ci. Réessaie."
+                ),
+            )
+
+        result["recettes"] = recettes_conformes
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         print("[ERROR] /generate-recipe :", repr(e))
         traceback.print_exc()
