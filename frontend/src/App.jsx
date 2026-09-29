@@ -3,6 +3,18 @@ import { LANGUAGES, RTL_LANGS, LANG_NAMES_FOR_API, getT } from './i18n'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+async function readErrorDetail(res, fallback) {
+  try {
+    const data = await res.json()
+    if (data && typeof data.detail === 'string' && data.detail.trim()) {
+      return `${fallback} — ${data.detail}`
+    }
+  } catch {
+    // le corps n'était pas du JSON exploitable, on garde le fallback
+  }
+  return fallback
+}
+
 function PotLoader({ text }) {
   return (
     <div className="pot-loader" role="status" aria-live="polite">
@@ -92,7 +104,7 @@ export default function App() {
         method: 'POST',
         body: formData,
       })
-      if (!res.ok) throw new Error(t.serverError(res.status))
+      if (!res.ok) throw new Error(await readErrorDetail(res, t.serverError(res.status)))
       const data = await res.json()
       console.log('Ingrédients détectés :', data) // vérification étape 1
       setIngredients(data.ingredients || [])
@@ -121,7 +133,7 @@ export default function App() {
           lang: LANG_NAMES_FOR_API[lang] || 'français',
         }),
       })
-      if (!res.ok) throw new Error(t.serverError(res.status))
+      if (!res.ok) throw new Error(await readErrorDetail(res, t.serverError(res.status)))
       const data = await res.json()
       console.log('Recettes générées :', data) // vérification étape 2
       const recettes = data.recettes || []

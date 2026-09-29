@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import traceback
 
 from anthropic import Anthropic
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -220,6 +221,8 @@ async def detect_ingredients(
         print("[LOG] Ingrédients détectés :", result)  # logging demandé
         return result
     except Exception as e:
+        print("[ERROR] /detect-ingredients :", repr(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -249,13 +252,29 @@ async def generate_recipe(request: RecipeRequest):
     try:
         response = client.messages.create(
             model="claude-sonnet-5",
-            max_tokens=5000,
+            max_tokens=8000,
             messages=[{"role": "user", "content": prompt}],
         )
         raw_text = extract_text(response)
-        result = parse_json_response(raw_text)
+        print(
+            f"[LOG] Réponse Claude reçue : stop_reason={response.stop_reason}, "
+            f"longueur={len(raw_text)} caractères"
+        )
+        if response.stop_reason == "max_tokens":
+            print("[WARN] La réponse a été coupée (max_tokens atteint) : le JSON sera probablement invalide")
+        try:
+            result = parse_json_response(raw_text)
+        except Exception as parse_err:
+            print("[ERROR] Échec du parsing JSON. Début/fin de la réponse brute :")
+            print("---DEBUT---")
+            print(raw_text[:500])
+            print("---FIN---")
+            print(raw_text[-500:])
+            raise parse_err
         titres = [r.get("titre") for r in result.get("recettes", [])]
         print(f"[LOG] {len(titres)} recette(s) générée(s) :", titres)
         return result
     except Exception as e:
+        print("[ERROR] /generate-recipe :", repr(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
