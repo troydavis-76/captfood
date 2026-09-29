@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.captfood.twa",
+        "sha256_cert_fingerprints": ["3F:98:CB:2A:88:70:80:32:A1:71:B9:E2:6B:E2:C5:CC:8F:EB:61:95:26:C5:62:33:C1:A5:BC:88:81:9E:65:5F"]
+      }
+    }]
