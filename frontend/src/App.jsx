@@ -33,8 +33,8 @@ function PotLoader({ text }) {
         <rect x="4" y="51" width="12" height="6" rx="3" className="pot-handle" />
         <rect x="84" y="51" width="12" height="6" rx="3" className="pot-handle" />
         <g className="pot-spoon">
-          <line x1="50" y1="60" x2="50" y2="30" className="spoon-stick" />
-          <ellipse cx="50" cy="27" rx="5" ry="7" className="spoon-head" />
+          <line x1="50" y1="28" x2="50" y2="60" className="spoon-stick" />
+          <ellipse cx="50" cy="61" rx="6" ry="5" className="spoon-head" />
         </g>
       </svg>
       <p className="pot-loader-text">{text}</p>
