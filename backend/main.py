@@ -60,6 +60,10 @@ RULE_BASE = (
     'tu peux ajouter quelques ingrédients de base courants (sel, huile, épices) si nécessaire'
 )
 RULE_NO_NOTES = 'Laisse le champ "notes_halal" vide ([]) pour chaque recette : aucune contrainte alimentaire particulière n\'est demandée ici'
+RULE_CALORIES = (
+    'Pour chaque recette, estime une fourchette calorique approximative par portion '
+    '(ex: "350-450 kcal") dans le champ "calories_estimees" ; précise que c\'est une estimation approximative'
+)
 
 RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes détaillées et réalistes à partir d'ingrédients disponibles.
 
@@ -83,6 +87,7 @@ Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
       "difficulte": "Facile" | "Moyen" | "Difficile",
       "ingredients_utilises": ["..."],
       "ingredients_a_ajouter": ["..."],
+      "calories_estimees": "ex: 350-450 kcal",
       "etapes": [
         {{"titre": "court résumé de l'étape", "detail": "explication complète et précise", "duree": "ex: 5 min ou null"}}
       ],
@@ -102,11 +107,12 @@ def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool, 
     if halal or sans_alcool:
         rules.append(RULE_SUBSTITUTE)
     rules.append(RULE_BASE)
+    rules.append(RULE_CALORIES)
     if not halal and not sans_alcool:
         rules.append(RULE_NO_NOTES)
     rules.append(
         f'Rédige TOUT le contenu textuel (titre, temps_preparation, difficulte, '
-        f'ingredients_utilises, ingredients_a_ajouter, etapes, notes_halal) en {lang}. '
+        f'ingredients_utilises, ingredients_a_ajouter, calories_estimees, etapes, notes_halal) en {lang}. '
         f'Garde les noms des champs JSON identiques (en anglais/français comme dans le format ci-dessous), '
         f'seules les VALEURS doivent être dans cette langue'
     )

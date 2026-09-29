@@ -299,6 +299,39 @@ button:disabled {
   font-weight: bold;
 }
 
+.empty-ingredients {
+  background: #F5EAF0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.manual-add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.manual-add-input {
+  flex: 1;
+  border: 1px solid #D9BBCB;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.manual-add-input:focus {
+  outline: none;
+  border-color: #6B2D5C;
+}
+
+.manual-add-button {
+  width: auto;
+  flex-shrink: 0;
+  padding: 10px 16px;
+}
+
 .uncertain-title {
   font-size: 13px;
   color: #a58a2a;

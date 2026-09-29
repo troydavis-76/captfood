@@ -44,6 +44,7 @@ export default function App() {
   const [loadingIngredients, setLoadingIngredients] = useState(false)
   const [loadingRecipe, setLoadingRecipe] = useState(false)
   const [error, setError] = useState(null)
+  const [manualIngredient, setManualIngredient] = useState('')
   const [lang, setLang] = useState(() => {
     try {
       return localStorage.getItem('captfood_lang') || 'fr'
@@ -139,6 +140,17 @@ export default function App() {
     setIncertain(incertain.filter((_, i) => i !== idx))
   }
 
+  function addManualIngredient() {
+    const value = manualIngredient.trim()
+    if (!value) return
+    if (ingredients.some((ing) => ing.toLowerCase() === value.toLowerCase())) {
+      setManualIngredient('')
+      return
+    }
+    setIngredients([...ingredients, value])
+    setManualIngredient('')
+  }
+
   function toggleRecipe(idx) {
     setOpenRecipes((prev) => ({ ...prev, [idx]: !prev[idx] }))
   }
@@ -227,16 +239,45 @@ export default function App() {
         <section className="step">
           <h2>{t.step2Title}</h2>
           <p className="hint">{t.hintVerify}</p>
-          <ul className="ingredient-list">
-            {ingredients.map((ing, idx) => (
-              <li key={idx}>
-                {ing}
-                <button className="remove" onClick={() => removeIngredient(idx)}>
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
+          {ingredients.length === 0 ? (
+            <p className="hint empty-ingredients">{t.emptyIngredients}</p>
+          ) : (
+            <ul className="ingredient-list">
+              {ingredients.map((ing, idx) => (
+                <li key={idx}>
+                  {ing}
+                  <button className="remove" onClick={() => removeIngredient(idx)}>
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="manual-add-row">
+            <input
+              type="text"
+              className="manual-add-input"
+              placeholder={t.manualAddPlaceholder}
+              value={manualIngredient}
+              onChange={(e) => setManualIngredient(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addManualIngredient()
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="manual-add-button"
+              onClick={addManualIngredient}
+              disabled={!manualIngredient.trim()}
+            >
+              {t.manualAddButton}
+            </button>
+          </div>
+
           {incertain.length > 0 && (
             <>
               <p className="hint uncertain-title">{t.uncertainTitle}</p>
@@ -302,6 +343,9 @@ export default function App() {
                     <span className="time">
                       ⏱ {recipe.temps_preparation}
                       {recipe.difficulte && ` · ${recipe.difficulte}`}
+                      {recipe.calories_estimees && (
+                        <span title={t.caloriesLabel}> · 🔥 {recipe.calories_estimees}</span>
+                      )}
                     </span>
                   </span>
                   <span className="recipe-chevron">▾</span>
