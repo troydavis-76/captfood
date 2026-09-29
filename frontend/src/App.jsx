@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { LANGUAGES, RTL_LANGS, LANG_NAMES_FOR_API, getT } from './i18n'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-function PotLoader() {
+function PotLoader({ text }) {
   return (
     <div className="pot-loader" role="status" aria-live="polite">
       <svg viewBox="0 0 100 100" width="72" height="72">
@@ -24,7 +25,7 @@ function PotLoader() {
           <ellipse cx="50" cy="27" rx="5" ry="7" className="spoon-head" />
         </g>
       </svg>
-      <p className="pot-loader-text">Le chef prépare tes recettes...</p>
+      <p className="pot-loader-text">{text}</p>
     </div>
   )
 }
@@ -43,12 +44,30 @@ export default function App() {
   const [loadingIngredients, setLoadingIngredients] = useState(false)
   const [loadingRecipe, setLoadingRecipe] = useState(false)
   const [error, setError] = useState(null)
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('captfood_lang') || 'fr'
+    } catch {
+      return 'fr'
+    }
+  })
+  const t = getT(lang)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('captfood_lang', lang)
+    } catch {
+      // ignore (stockage indisponible)
+    }
+    document.documentElement.dir = RTL_LANGS.includes(lang) ? 'rtl' : 'ltr'
+    document.documentElement.lang = lang
+  }, [lang])
 
   function handlePhotoChange(e) {
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
     if (files.length > MAX_PHOTOS) {
-      setError(`Maximum ${MAX_PHOTOS} photos à la fois`)
+      setError(t.maxPhotosError(MAX_PHOTOS))
       return
     }
     setPhotos(files)
@@ -65,11 +84,12 @@ export default function App() {
     try {
       const formData = new FormData()
       photos.forEach((photo) => formData.append('files', photo))
+      formData.append('lang', LANG_NAMES_FOR_API[lang] || 'français')
       const res = await fetch(`${API_URL}/detect-ingredients`, {
         method: 'POST',
         body: formData,
       })
-      if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
+      if (!res.ok) throw new Error(t.serverError(res.status))
       const data = await res.json()
       console.log('Ingrédients détectés :', data) // vérification étape 1
       setIngredients(data.ingredients || [])
@@ -89,9 +109,14 @@ export default function App() {
       const res = await fetch(`${API_URL}/generate-recipe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients, halal, sans_alcool: sansAlcool }),
+        body: JSON.stringify({
+          ingredients,
+          halal,
+          sans_alcool: sansAlcool,
+          lang: LANG_NAMES_FOR_API[lang] || 'français',
+        }),
       })
-      if (!res.ok) throw new Error(`Erreur serveur (${res.status})`)
+      if (!res.ok) throw new Error(t.serverError(res.status))
       const data = await res.json()
       console.log('Recettes générées :', data) // vérification étape 2
       const recettes = data.recettes || []
@@ -120,37 +145,49 @@ export default function App() {
 
   return (
     <div className="container">
+      <div className="lang-switcher">
+        <select
+          value={lang}
+          onChange={(e) => setLang(e.target.value)}
+          aria-label="Langue"
+        >
+          {LANGUAGES.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <header>
         <h1>CaptFood</h1>
-        <p className="subtitle">De ton placard à ton assiette, en une photo — zéro gaspillage.</p>
+        <p className="subtitle">{t.subtitle}</p>
         <div className="benefits">
           <div className="benefit">
             <span className="benefit-icon">🌱</span>
-            <span>Anti-gaspi</span>
+            <span>{t.benefitAntiGaspi}</span>
           </div>
           <div className="benefit">
             <span className="benefit-icon">☪️</span>
-            <span>100% halal</span>
+            <span>{t.benefitHalal}</span>
           </div>
           <div className="benefit">
             <span className="benefit-icon">⚡</span>
-            <span>Rapide</span>
+            <span>{t.benefitFast}</span>
           </div>
           <div className="benefit">
             <span className="benefit-icon">🍽️</span>
-            <span>3 recettes</span>
+            <span>{t.benefitRecipes}</span>
           </div>
         </div>
       </header>
 
       <section className="step canvas">
-        <h2>1. Prends jusqu'à {MAX_PHOTOS} photos</h2>
+        <h2>{t.step1Title(MAX_PHOTOS)}</h2>
         <label className="canvas-dropzone">
           <span className="canvas-icon">📷</span>
           <span className="canvas-text">
-            {photos.length > 0
-              ? `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`
-              : 'Choisis tes photos'}
+            {photos.length > 0 ? t.photosSelected(photos.length) : t.chooseFiles}
           </span>
           <input
             type="file"
@@ -159,7 +196,7 @@ export default function App() {
             onChange={handlePhotoChange}
           />
         </label>
-        <p className="hint">Choisis "Photos"/"Galerie" pour en sélectionner plusieurs d'un coup, ou "Appareil photo" pour une seule.</p>
+        <p className="hint">{t.hintPhotos}</p>
         {photoPreviews.length > 0 && (
           <div className="preview-row">
             {photoPreviews.map((src, i) => (
@@ -169,17 +206,15 @@ export default function App() {
         )}
         {photos.length > 0 && !ingredients && (
           <button onClick={detectIngredients} disabled={loadingIngredients}>
-            {loadingIngredients
-              ? 'Analyse en cours...'
-              : `Analyser ${photos.length > 1 ? `les ${photos.length} photos` : 'la photo'}`}
+            {loadingIngredients ? t.analyzeLoading : t.analyzeButton(photos.length)}
           </button>
         )}
       </section>
 
       {ingredients && (
         <section className="step">
-          <h2>2. Ingrédients détectés</h2>
-          <p className="hint">Vérifie et retire ce qui est faux avant de continuer.</p>
+          <h2>{t.step2Title}</h2>
+          <p className="hint">{t.hintVerify}</p>
           <ul className="ingredient-list">
             {ingredients.map((ing, idx) => (
               <li key={idx}>
@@ -192,7 +227,7 @@ export default function App() {
           </ul>
           {incertain.length > 0 && (
             <>
-              <p className="hint uncertain-title">Incertain — ajoute si c'est correct</p>
+              <p className="hint uncertain-title">{t.uncertainTitle}</p>
               <ul className="ingredient-list uncertain-list">
                 {incertain.map((ing, idx) => (
                   <li key={idx}>
@@ -215,7 +250,7 @@ export default function App() {
               checked={halal}
               onChange={(e) => setHalal(e.target.checked)}
             />
-            Recettes halal uniquement
+            {t.halalOnly}
           </label>
           <label className="halal-checkbox">
             <input
@@ -223,16 +258,16 @@ export default function App() {
               checked={sansAlcool}
               onChange={(e) => setSansAlcool(e.target.checked)}
             />
-            Sans alcool
+            {t.noAlcohol}
           </label>
 
           {!recipes && !loadingRecipe && (
             <button onClick={generateRecipe} disabled={ingredients.length === 0}>
-              Générer des recettes
+              {t.generateButton}
             </button>
           )}
 
-          {loadingRecipe && <PotLoader />}
+          {loadingRecipe && <PotLoader text={t.potLoaderText} />}
         </section>
       )}
 
@@ -260,21 +295,21 @@ export default function App() {
 
                 {isOpen && (
                   <div className="recipe-body">
-                    <h3>Ingrédients utilisés</h3>
+                    <h3>{t.ingredientsUsed}</h3>
                     <ul>
                       {recipe.ingredients_utilises?.map((ing, i) => <li key={i}>{ing}</li>)}
                     </ul>
 
                     {recipe.ingredients_a_ajouter?.length > 0 && (
                       <>
-                        <h3>À ajouter</h3>
+                        <h3>{t.toAdd}</h3>
                         <ul>
                           {recipe.ingredients_a_ajouter.map((ing, i) => <li key={i}>{ing}</li>)}
                         </ul>
                       </>
                     )}
 
-                    <h3>Étapes</h3>
+                    <h3>{t.stepsTitle}</h3>
                     <ol className="steps-list">
                       {recipe.etapes?.map((step, i) => (
                         <li key={i}>
@@ -289,7 +324,7 @@ export default function App() {
 
                     {recipe.notes_halal?.length > 0 && (
                       <div className="halal-notes">
-                        <h3>Notes halal</h3>
+                        <h3>{t.halalNotes}</h3>
                         <ul>
                           {recipe.notes_halal.map((note, i) => <li key={i}>{note}</li>)}
                         </ul>
@@ -303,7 +338,7 @@ export default function App() {
         </div>
       )}
 
-      {error && <p className="error">Erreur : {error}</p>}
+      {error && <p className="error">{t.errorPrefix} : {error}</p>}
     </div>
   )
 }

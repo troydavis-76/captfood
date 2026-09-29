@@ -3,7 +3,7 @@ import json
 import os
 
 from anthropic import Anthropic
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -35,6 +35,15 @@ Règles :
 - Ignore les ustensiles, contenants vides, produits non alimentaires
 - Ne devine jamais la quantité, juste la présence
 - Si un même ingrédient apparaît sur plusieurs photos, ne le liste qu'une seule fois"""
+
+
+def build_vision_prompt(lang: str) -> str:
+    return (
+        VISION_PROMPT
+        + f"\n\nIMPORTANT : rédige les noms d'ingrédients en {lang}. "
+        + "Garde les noms des champs JSON ('ingredients', 'incertain') inchangés, "
+        + "seul le contenu textuel doit être dans cette langue."
+    )
 
 RULE_PORK = 'Aucun porc ni dérivé (lardons, jambon, saindoux, gélatine non précisée)'
 RULE_MEAT_CERT = (
@@ -83,7 +92,7 @@ Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
 }}"""
 
 
-def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool) -> str:
+def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool, lang: str) -> str:
     rules = []
     if halal:
         rules.append(RULE_PORK)
@@ -95,6 +104,12 @@ def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool) 
     rules.append(RULE_BASE)
     if not halal and not sans_alcool:
         rules.append(RULE_NO_NOTES)
+    rules.append(
+        f'Rédige TOUT le contenu textuel (titre, temps_preparation, difficulte, '
+        f'ingredients_utilises, ingredients_a_ajouter, etapes, notes_halal) en {lang}. '
+        f'Garde les noms des champs JSON identiques (en anglais/français comme dans le format ci-dessous), '
+        f'seules les VALEURS doivent être dans cette langue'
+    )
 
     numbered_rules = "\n".join(f"{i + 1}. {rule}" for i, rule in enumerate(rules))
     return RECIPE_PROMPT_TEMPLATE.format(
@@ -130,7 +145,9 @@ MAX_PHOTOS = 5
 
 
 @app.post("/detect-ingredients")
-async def detect_ingredients(files: list[UploadFile] = File(...)):
+async def detect_ingredients(
+    files: list[UploadFile] = File(...), lang: str = Form("français")
+):
     if not files:
         raise HTTPException(status_code=400, detail="Aucune photo envoyée")
     if len(files) > MAX_PHOTOS:
@@ -161,7 +178,7 @@ async def detect_ingredients(files: list[UploadFile] = File(...)):
             messages=[
                 {
                     "role": "user",
-                    "content": [*image_blocks, {"type": "text", "text": VISION_PROMPT}],
+                    "content": [*image_blocks, {"type": "text", "text": build_vision_prompt(lang)}],
                 }
             ],
         )
@@ -177,6 +194,7 @@ class RecipeRequest(BaseModel):
     ingredients: list[str]
     halal: bool = True
     sans_alcool: bool = True
+    lang: str = "français"
 
 
 @app.post("/generate-recipe")
@@ -184,7 +202,9 @@ async def generate_recipe(request: RecipeRequest):
     if not request.ingredients:
         raise HTTPException(status_code=400, detail="Liste d'ingrédients vide")
 
-    prompt = build_recipe_prompt(request.ingredients, request.halal, request.sans_alcool)
+    prompt = build_recipe_prompt(
+        request.ingredients, request.halal, request.sans_alcool, request.lang
+    )
 
     try:
         response = client.messages.create(
