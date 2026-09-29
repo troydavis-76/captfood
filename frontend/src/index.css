@@ -148,25 +148,20 @@ input[type='file'] {
   color: #6B2D5C;
 }
 
-.preview {
-  width: 100%;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  max-height: 300px;
-  object-fit: cover;
-}
-
 .preview-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  justify-content: center;
+  gap: 6px;
+  max-width: 260px;
 }
 
 .preview-thumb {
-  width: calc(50% - 4px);
-  margin-bottom: 0;
-  max-height: 140px;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .halal-checkbox {
@@ -184,12 +179,28 @@ input[type='file'] {
   cursor: pointer;
 }
 
+.recipes-title {
+  max-width: 480px;
+  margin: 0 auto 12px;
+  color: #1f2a1f;
+}
+
 .recipes-accordion {
   max-width: 480px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.restart-button {
+  max-width: 480px;
+  margin: 16px auto 0;
+  display: block;
+  background: transparent;
+  color: #6B2D5C;
+  border: 2px solid #6B2D5C;
+  font-weight: 600;
 }
 
 .recipe-card {

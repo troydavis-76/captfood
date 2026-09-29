@@ -143,6 +143,16 @@ export default function App() {
     setOpenRecipes((prev) => ({ ...prev, [idx]: !prev[idx] }))
   }
 
+  function restart() {
+    setPhotos([])
+    setPhotoPreviews([])
+    setIngredients(null)
+    setIncertain([])
+    setRecipes(null)
+    setOpenRecipes({})
+    setError(null)
+  }
+
   return (
     <div className="container">
       <div className="lang-switcher">
@@ -185,7 +195,15 @@ export default function App() {
       <section className="step canvas">
         <h2>{t.step1Title(MAX_PHOTOS)}</h2>
         <label className="canvas-dropzone">
-          <span className="canvas-icon">📷</span>
+          {photoPreviews.length > 0 ? (
+            <div className="preview-row">
+              {photoPreviews.map((src, i) => (
+                <img key={i} src={src} alt={`aperçu ${i + 1}`} className="preview-thumb" />
+              ))}
+            </div>
+          ) : (
+            <span className="canvas-icon">📷</span>
+          )}
           <span className="canvas-text">
             {photos.length > 0 ? t.photosSelected(photos.length) : t.chooseFiles}
           </span>
@@ -197,18 +215,12 @@ export default function App() {
           />
         </label>
         <p className="hint">{t.hintPhotos}</p>
-        {photoPreviews.length > 0 && (
-          <div className="preview-row">
-            {photoPreviews.map((src, i) => (
-              <img key={i} src={src} alt={`aperçu ${i + 1}`} className="preview preview-thumb" />
-            ))}
-          </div>
-        )}
-        {photos.length > 0 && !ingredients && (
-          <button onClick={detectIngredients} disabled={loadingIngredients}>
-            {loadingIngredients ? t.analyzeLoading : t.analyzeButton(photos.length)}
+        {photos.length > 0 && !ingredients && !loadingIngredients && (
+          <button onClick={detectIngredients}>
+            {t.analyzeButton(photos.length)}
           </button>
         )}
+        {loadingIngredients && <PotLoader text={t.photoLoaderText} />}
       </section>
 
       {ingredients && (
@@ -261,9 +273,9 @@ export default function App() {
             {t.noAlcohol}
           </label>
 
-          {!recipes && !loadingRecipe && (
+          {!loadingRecipe && (
             <button onClick={generateRecipe} disabled={ingredients.length === 0}>
-              {t.generateButton}
+              {recipes ? t.regenerateButton : t.generateButton}
             </button>
           )}
 
@@ -272,7 +284,9 @@ export default function App() {
       )}
 
       {recipes && recipes.length > 0 && (
-        <div className="recipes-accordion">
+        <>
+          <h2 className="recipes-title">{t.step3Title}</h2>
+          <div className="recipes-accordion">
           {recipes.map((recipe, ri) => {
             const isOpen = !!openRecipes[ri]
             return (
@@ -335,7 +349,11 @@ export default function App() {
               </section>
             )
           })}
-        </div>
+          </div>
+          <button type="button" className="restart-button" onClick={restart}>
+            {t.restartButton}
+          </button>
+        </>
       )}
 
       {error && <p className="error">{t.errorPrefix} : {error}</p>}
