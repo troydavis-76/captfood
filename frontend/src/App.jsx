@@ -39,6 +39,8 @@ export default function App() {
   const [incertain, setIncertain] = useState([])
   const [halal, setHalal] = useState(true)
   const [sansAlcool, setSansAlcool] = useState(true)
+  const [cookeo, setCookeo] = useState(false)
+  const [thermomix, setThermomix] = useState(false)
   const [recipes, setRecipes] = useState(null)
   const [openRecipes, setOpenRecipes] = useState({})
   const [loadingIngredients, setLoadingIngredients] = useState(false)
@@ -114,6 +116,8 @@ export default function App() {
           ingredients,
           halal,
           sans_alcool: sansAlcool,
+          cookeo,
+          thermomix,
           lang: LANG_NAMES_FOR_API[lang] || 'français',
         }),
       })
@@ -313,6 +317,25 @@ export default function App() {
             />
             {t.noAlcohol}
           </label>
+
+          <div className="appliance-checkboxes">
+            <label className="halal-checkbox appliance-checkbox">
+              <input
+                type="checkbox"
+                checked={cookeo}
+                onChange={(e) => setCookeo(e.target.checked)}
+              />
+              {t.cookeoLabel}
+            </label>
+            <label className="halal-checkbox appliance-checkbox">
+              <input
+                type="checkbox"
+                checked={thermomix}
+                onChange={(e) => setThermomix(e.target.checked)}
+              />
+              {t.thermomixLabel}
+            </label>
+          </div>
 
           {!loadingRecipe && (
             <button onClick={generateRecipe} disabled={ingredients.length === 0}>

@@ -64,6 +64,20 @@ RULE_CALORIES = (
     'Pour chaque recette, estime une fourchette calorique approximative par portion '
     '(ex: "350-450 kcal") dans le champ "calories_estimees" ; précise que c\'est une estimation approximative'
 )
+RULE_COOKEO = (
+    'Adapte le champ "etapes" pour une cuisson au Cookeo (robot cuiseur multicuisson) : '
+    'indique pour chaque étape concernée le mode utilisé (Dorer, Cuisson sous pression, Mijoter, Vapeur...) '
+    'et une durée adaptée ; précise dans "detail" que ce sont des réglages estimés, à ajuster selon le modèle'
+)
+RULE_THERMOMIX = (
+    'Adapte le champ "etapes" pour une préparation au Thermomix : indique pour chaque étape concernée '
+    'la vitesse, la température et la durée (ex: "5 min / 100°C / vitesse 2") ; '
+    'précise dans "detail" que ce sont des réglages estimés, à ajuster selon le modèle'
+)
+RULE_BOTH_APPLIANCES = (
+    'Le Cookeo ET le Thermomix sont cochés : pour chaque étape concernée par la cuisson, '
+    'donne les DEUX réglages côte à côte et clairement distingués (ex: "Cookeo : ... / Thermomix : ...")'
+)
 
 RECIPE_PROMPT_TEMPLATE = """Tu es un chef cuisinier qui génère des recettes détaillées et réalistes à partir d'ingrédients disponibles.
 
@@ -97,7 +111,14 @@ Réponds STRICTEMENT en JSON, sans texte avant ou après, format :
 }}"""
 
 
-def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool, lang: str) -> str:
+def build_recipe_prompt(
+    ingredients: list[str],
+    halal: bool,
+    sans_alcool: bool,
+    lang: str,
+    cookeo: bool = False,
+    thermomix: bool = False,
+) -> str:
     rules = []
     if halal:
         rules.append(RULE_PORK)
@@ -108,6 +129,12 @@ def build_recipe_prompt(ingredients: list[str], halal: bool, sans_alcool: bool, 
         rules.append(RULE_SUBSTITUTE)
     rules.append(RULE_BASE)
     rules.append(RULE_CALORIES)
+    if cookeo:
+        rules.append(RULE_COOKEO)
+    if thermomix:
+        rules.append(RULE_THERMOMIX)
+    if cookeo and thermomix:
+        rules.append(RULE_BOTH_APPLIANCES)
     if not halal and not sans_alcool:
         rules.append(RULE_NO_NOTES)
     rules.append(
@@ -200,6 +227,8 @@ class RecipeRequest(BaseModel):
     ingredients: list[str]
     halal: bool = True
     sans_alcool: bool = True
+    cookeo: bool = False
+    thermomix: bool = False
     lang: str = "français"
 
 
@@ -209,13 +238,18 @@ async def generate_recipe(request: RecipeRequest):
         raise HTTPException(status_code=400, detail="Liste d'ingrédients vide")
 
     prompt = build_recipe_prompt(
-        request.ingredients, request.halal, request.sans_alcool, request.lang
+        request.ingredients,
+        request.halal,
+        request.sans_alcool,
+        request.lang,
+        cookeo=request.cookeo,
+        thermomix=request.thermomix,
     )
 
     try:
         response = client.messages.create(
             model="claude-sonnet-5",
-            max_tokens=4000,
+            max_tokens=5000,
             messages=[{"role": "user", "content": prompt}],
         )
         raw_text = extract_text(response)
