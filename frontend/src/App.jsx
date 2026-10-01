@@ -517,6 +517,20 @@ export default function App() {
         </>
       )}
 
+      <section className="seo-section">
+        <p className="seo-intro">{t.seoIntro}</p>
+
+        <h2>{t.seoHowTitle}</h2>
+        <ol className="seo-how-list">
+          <li>{t.seoHowStep1}</li>
+          <li>{t.seoHowStep2}</li>
+          <li>{t.seoHowStep3}</li>
+        </ol>
+
+        <h2>{t.seoWhyTitle}</h2>
+        <p>{t.seoWhyText}</p>
+      </section>
+
         </>
       )}
 
