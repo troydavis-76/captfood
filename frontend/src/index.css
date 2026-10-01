@@ -501,6 +501,17 @@ button:disabled {
   margin-bottom: 8px;
 }
 
+.contact-line {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #f0ede4;
+}
+
+.contact-line a {
+  color: #6B2D5C;
+  font-weight: 600;
+}
+
 .steps-list {
   padding-left: 20px;
   margin: 0;

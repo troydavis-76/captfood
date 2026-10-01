@@ -65,6 +65,7 @@ const dict = {
     seoHowStep3: 'Cuisinez une recette sur-mesure — recevez des recettes halal, sans alcool, adaptées à vos envies et même à votre Cookeo ou Thermomix.',
     seoWhyTitle: 'Pourquoi utiliser CaptFood ?',
     seoWhyText: "Anti-gaspillage : utilisez ce qu'il y a déjà dans votre cuisine avant que ça ne se perde. Gain de temps : plus besoin de chercher une recette pendant 20 minutes, l'IA s'en charge en quelques secondes à partir de vos propres ingrédients. Économies : moins de courses inutiles, moins de nourriture jetée. Et toujours 100% halal, sans alcool.",
+    contactIntro: 'Une question, un bug à signaler ?',
   },
   en: {
     subtitle: 'From your pantry to your plate, in one photo — zero waste.',
@@ -113,6 +114,7 @@ const dict = {
     seoHowStep3: 'Cook a tailor-made recipe — get halal, alcohol-free recipes, adapted to your taste and even to your Cookeo or Thermomix.',
     seoWhyTitle: 'Why use CaptFood?',
     seoWhyText: "Less food waste: use what's already in your kitchen before it goes to waste. Save time: no more browsing recipes for 20 minutes — the AI handles it in seconds from your own ingredients. Save money: fewer unnecessary grocery runs, less food thrown away. And always 100% halal, alcohol-free.",
+    contactIntro: 'A question, a bug to report?',
   },
   ar: {
     subtitle: 'من خزانتك إلى طبقك، بصورة واحدة — بلا هدر.',
@@ -161,6 +163,7 @@ const dict = {
     seoHowStep3: 'اطبخ وصفة مخصصة — احصل على وصفات حلال وبدون كحول، مكيّفة لذوقك وحتى لجهاز Cookeo أو Thermomix.',
     seoWhyTitle: 'لماذا تستخدم كابت فود؟',
     seoWhyText: 'تقليل الهدر: استخدم ما هو موجود بالفعل في مطبخك قبل أن ينتهي صلاحيته. توفير الوقت: لا حاجة للبحث عن وصفة لمدة ٢٠ دقيقة، فالذكاء الاصطناعي يتكفل بذلك خلال ثوانٍ انطلاقًا من مكوناتك. توفير المال: تسوق أقل وهدر أقل للطعام. ودائمًا حلال ١٠٠٪ وبدون كحول.',
+    contactIntro: 'سؤال أو خطأ تريد الإبلاغ عنه؟',
   },
   es: {
     subtitle: 'De tu despensa a tu plato, en una foto — cero desperdicio.',
@@ -209,6 +212,7 @@ const dict = {
     seoHowStep3: 'Cocina una receta a tu medida — recibe recetas halal, sin alcohol, adaptadas a tus gustos e incluso a tu Cookeo o Thermomix.',
     seoWhyTitle: '¿Por qué usar CaptFood?',
     seoWhyText: 'Menos desperdicio: aprovecha lo que ya tienes en la cocina antes de que se eche a perder. Ahorra tiempo: ya no necesitas buscar una receta durante 20 minutos, la IA lo hace en segundos a partir de tus propios ingredientes. Ahorra dinero: menos compras innecesarias, menos comida tirada. Y siempre 100% halal, sin alcohol.',
+    contactIntro: '¿Una pregunta, un error que reportar?',
   },
   de: {
     subtitle: 'Von deiner Vorratskammer auf den Teller, mit einem Foto — kein Verschwenden.',
@@ -257,6 +261,7 @@ const dict = {
     seoHowStep3: 'Koche ein maßgeschneidertes Rezept — erhalte halal, alkoholfreie Rezepte, angepasst an deinen Geschmack und sogar an deinen Cookeo oder Thermomix.',
     seoWhyTitle: 'Warum CaptFood nutzen?',
     seoWhyText: 'Weniger Verschwendung: nutze, was bereits in deiner Küche ist, bevor es schlecht wird. Zeit sparen: kein 20-minütiges Suchen nach einem Rezept mehr, die KI erledigt das in Sekunden aus deinen eigenen Zutaten. Geld sparen: weniger unnötige Einkäufe, weniger weggeworfenes Essen. Und immer 100% halal, alkoholfrei.',
+    contactIntro: 'Eine Frage, ein Fehler zu melden?',
   },
 }
 

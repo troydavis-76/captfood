@@ -529,6 +529,10 @@ export default function App() {
 
         <h2>{t.seoWhyTitle}</h2>
         <p>{t.seoWhyText}</p>
+
+        <p className="contact-line">
+          {t.contactIntro} <a href="mailto:yassop76@hotmail.fr">yassop76@hotmail.fr</a>
+        </p>
       </section>
 
         </>
