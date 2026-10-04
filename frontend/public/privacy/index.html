@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#6B2D5C" />
+    <title>Politique de confidentialité — CaptFood</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #f6f4ef;
+        color: #1f2a1f;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      h1 {
+        color: #6B2D5C;
+        font-size: 26px;
+        margin-bottom: 4px;
+      }
+      .updated {
+        color: #6b6b6b;
+        font-size: 13px;
+        margin-bottom: 28px;
+      }
+      h2 {
+        color: #6B2D5C;
+        font-size: 18px;
+        margin: 28px 0 8px;
+      }
+      p, li {
+        font-size: 15px;
+      }
+      ul {
+        padding-left: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      a {
+        color: #6B2D5C;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .note {
+        background: #F5EAF0;
+        border-left: 3px solid #6B2D5C;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #4a2d41;
+        margin-top: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Politique de confidentialité — CaptFood</h1>
+      <p class="updated">Dernière mise à jour : 4 octobre 2026</p>
+
+      <div class="card">
+        <h2>Qui est responsable de l'application</h2>
+        <p>
+          CaptFood est éditée par Abdoul, développeur indépendant (micro-entreprise), en France.
+          Pour toute question sur cette politique ou vos données : <a href="mailto:yassop76@hotmail.fr">yassop76@hotmail.fr</a>.
+        </p>
+
+        <h2>Ce que CaptFood ne fait pas</h2>
+        <ul>
+          <li>Pas de création de compte, pas de nom, pas d'email, pas de numéro de téléphone demandé</li>
+          <li>Pas de vente de données à des tiers</li>
+          <li>Pas de publicité, pas de traceurs publicitaires, pas de revente à des régies</li>
+        </ul>
+
+        <h2>Les données traitées</h2>
+        <p><strong>Photos de votre frigo/placard</strong> — envoyées à l'API d'Anthropic (Claude) pour y détecter les ingrédients visibles. Ces photos sont transmises pour l'analyse et ne sont pas conservées sur les serveurs de CaptFood après traitement.</p>
+        <p><strong>Identifiant anonyme d'appareil</strong> — un identifiant technique généré au hasard et stocké sur votre appareil (pas lié à votre identité), utilisé uniquement pour retrouver votre historique de recettes.</p>
+        <p><strong>Historique des recettes</strong> — si vous générez des recettes, les ingrédients utilisés et les recettes obtenues sont enregistrés (base Supabase), associés uniquement à l'identifiant anonyme ci-dessus.</p>
+        <p><strong>Préférence de langue</strong> — stockée uniquement sur votre appareil (stockage local du navigateur), jamais transmise à un serveur.</p>
+
+        <h2>Avec qui ces données sont partagées</h2>
+        <ul>
+          <li><strong>Anthropic</strong> (éditeur du modèle Claude) — reçoit les photos et le texte nécessaires pour détecter les ingrédients et générer les recettes. Anthropic est une société basée aux États-Unis ; ces données peuvent donc être traitées en dehors de l'Union européenne.</li>
+          <li><strong>Supabase</strong> — héberge l'historique des recettes (ingrédients, recettes, identifiant anonyme).</li>
+          <li><strong>Vercel</strong> et <strong>Render</strong> — hébergent respectivement l'application (frontend) et le serveur (backend) de CaptFood.</li>
+        </ul>
+        <p>Ces prestataires ne reçoivent que ce qui est nécessaire au fonctionnement de l'application, jamais plus.</p>
+
+        <h2>Durée de conservation</h2>
+        <p>L'historique des recettes est conservé tant que vous utilisez l'application. Vous pouvez demander la suppression de votre historique à tout moment en écrivant à l'adresse ci-dessus, en précisant que vous utilisez CaptFood (aucune autre donnée d'identification n'étant disponible côté serveur, un échange sera nécessaire pour retrouver votre identifiant).</p>
+
+        <h2>Sécurité</h2>
+        <p>Les échanges entre l'application et le serveur sont chiffrés (HTTPS). Les clés d'accès aux services tiers (Anthropic, Supabase) ne sont jamais exposées dans l'application elle-même.</p>
+
+        <h2>Âge</h2>
+        <p>CaptFood n'est pas conçue spécifiquement pour les enfants de moins de 13 ans et ne collecte pas sciemment de données concernant des enfants.</p>
+
+        <h2>Modifications</h2>
+        <p>Cette politique peut évoluer avec l'application. La date de dernière mise à jour en haut de page reflète la version actuelle.</p>
+      </div>
+
+      <p class="note">
+        Ce document a été rédigé avec l'aide de Claude, en toute bonne foi et sur la base du fonctionnement réel de l'application. Il ne remplace pas une relecture par un professionnel du droit, en particulier si l'application venait à évoluer ou à grandir.
+      </p>
+    </div>
+  </body>
+</html>

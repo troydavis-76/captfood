@@ -533,6 +533,9 @@ export default function App() {
         <p className="contact-line">
           {t.contactIntro} <a href="mailto:yassop76@hotmail.fr">yassop76@hotmail.fr</a>
         </p>
+        <p className="privacy-line">
+          <a href="/privacy">{t.privacyLink}</a>
+        </p>
       </section>
 
         </>

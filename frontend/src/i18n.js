@@ -66,6 +66,7 @@ const dict = {
     seoWhyTitle: 'Pourquoi utiliser CaptFood ?',
     seoWhyText: "Anti-gaspillage : utilisez ce qu'il y a déjà dans votre cuisine avant que ça ne se perde. Gain de temps : plus besoin de chercher une recette pendant 20 minutes, l'IA s'en charge en quelques secondes à partir de vos propres ingrédients. Économies : moins de courses inutiles, moins de nourriture jetée. Et toujours 100% halal, sans alcool.",
     contactIntro: 'Une question, un bug à signaler ?',
+    privacyLink: 'Politique de confidentialité',
   },
   en: {
     subtitle: 'From your pantry to your plate, in one photo — zero waste.',
@@ -115,6 +116,7 @@ const dict = {
     seoWhyTitle: 'Why use CaptFood?',
     seoWhyText: "Less food waste: use what's already in your kitchen before it goes to waste. Save time: no more browsing recipes for 20 minutes — the AI handles it in seconds from your own ingredients. Save money: fewer unnecessary grocery runs, less food thrown away. And always 100% halal, alcohol-free.",
     contactIntro: 'A question, a bug to report?',
+    privacyLink: 'Privacy policy',
   },
   ar: {
     subtitle: 'من خزانتك إلى طبقك، بصورة واحدة — بلا هدر.',
@@ -164,6 +166,7 @@ const dict = {
     seoWhyTitle: 'لماذا تستخدم كابت فود؟',
     seoWhyText: 'تقليل الهدر: استخدم ما هو موجود بالفعل في مطبخك قبل أن ينتهي صلاحيته. توفير الوقت: لا حاجة للبحث عن وصفة لمدة ٢٠ دقيقة، فالذكاء الاصطناعي يتكفل بذلك خلال ثوانٍ انطلاقًا من مكوناتك. توفير المال: تسوق أقل وهدر أقل للطعام. ودائمًا حلال ١٠٠٪ وبدون كحول.',
     contactIntro: 'سؤال أو خطأ تريد الإبلاغ عنه؟',
+    privacyLink: 'سياسة الخصوصية',
   },
   es: {
     subtitle: 'De tu despensa a tu plato, en una foto — cero desperdicio.',
@@ -213,6 +216,7 @@ const dict = {
     seoWhyTitle: '¿Por qué usar CaptFood?',
     seoWhyText: 'Menos desperdicio: aprovecha lo que ya tienes en la cocina antes de que se eche a perder. Ahorra tiempo: ya no necesitas buscar una receta durante 20 minutos, la IA lo hace en segundos a partir de tus propios ingredientes. Ahorra dinero: menos compras innecesarias, menos comida tirada. Y siempre 100% halal, sin alcohol.',
     contactIntro: '¿Una pregunta, un error que reportar?',
+    privacyLink: 'Política de privacidad',
   },
   de: {
     subtitle: 'Von deiner Vorratskammer auf den Teller, mit einem Foto — kein Verschwenden.',
@@ -262,6 +266,7 @@ const dict = {
     seoWhyTitle: 'Warum CaptFood nutzen?',
     seoWhyText: 'Weniger Verschwendung: nutze, was bereits in deiner Küche ist, bevor es schlecht wird. Zeit sparen: kein 20-minütiges Suchen nach einem Rezept mehr, die KI erledigt das in Sekunden aus deinen eigenen Zutaten. Geld sparen: weniger unnötige Einkäufe, weniger weggeworfenes Essen. Und immer 100% halal, alkoholfrei.',
     contactIntro: 'Eine Frage, ein Fehler zu melden?',
+    privacyLink: 'Datenschutzerklärung',
   },
 }
 
